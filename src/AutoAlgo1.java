@@ -76,6 +76,17 @@ public class AutoAlgo1 {
     public void update(int deltaTime) {
         updateVisited();
         updateMapByLidars();
+        if (SimulationWindow.start_time > 0 ) {
+            long time_passed = System.currentTimeMillis() - SimulationWindow.start_time;
+            long time_for_return = (long) (((double) WorldParams.time_of_battery / 2) * 60000 - WorldParams.safety_battery_time);
+//            System.out.println("AAAAAA"+time_passed);
+//            System.out.println("BBBBB"+time_for_return);
+//            System.out.println("CCCCCCCCC"+(WorldParams.time_of_battery / 2) * 60000);
+//            System.out.println("DDDDDDDD"+WorldParams.safety_battery_time);
+            if (time_passed >= time_for_return) {
+                SimulationWindow.return_home = true;
+            }
+        }
         ai(deltaTime);
         if (isRotating != 0) {
             updateRotating(deltaTime);
@@ -265,9 +276,9 @@ public class AutoAlgo1 {
                     if(SimulationWindow.return_home ) {
                         spin_by *= -1;
 					}
-//                    if (dis_to_lidar1 < dis_to_lidar2) {
-//                        spin_by *= (-1);
-//                    }
+                    if (dis_to_lidar1 < dis_to_lidar2) {
+                        spin_by *= (-1);
+                    }
 
                 } else {
                     // spin by 10
@@ -281,6 +292,7 @@ public class AutoAlgo1 {
                     public void method() {
                         try_to_escape = false;
                         is_risky = false;
+                        try_to_return = false;
                     }
                 });
             }

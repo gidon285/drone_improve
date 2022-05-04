@@ -15,11 +15,15 @@ public class Drone {
 	private Point pointFromStart;
 	public Point startPoint;
 	public List<Lidar> lidars;
-	private String drone_img_path = "D:\\Tests\\drone_3_pixels.png";
+	private String drone_img_path = "C:\\Users\\moriy\\Desktop\\ex1\\drone_improve\\Maps\\drone_3_pixels.png";
 	public Map realMap;
 	private double rotation;
 	private double speed;
 	private CPU cpu;
+
+	//for timer
+	private int minutes = 0;
+	private int seconds = 0;
 	
 	public Drone(Map realMap) {
 		this.realMap = realMap;
@@ -59,7 +63,12 @@ public class Drone {
 	}
 	
 	public void update(int deltaTime) {
-
+		if (SimulationWindow.start_time > 0){//we added -timer
+			long time_passed = System.currentTimeMillis() - SimulationWindow.start_time;  //60001
+			minutes = (int)(time_passed/60000); //1.1
+			seconds = (int)((time_passed%60000)/1000); //1
+//			minits = time_passed%60000;
+		}
 		double distancedMoved = (speed*100)*((double)deltaTime/1000);
 		
 		pointFromStart =  Tools.getPointByDistance(pointFromStart, rotation, distancedMoved);
@@ -162,6 +171,7 @@ public class Drone {
 		info += "Location: " + pointFromStart +"<br>";
 		info += "gyroRotation: " + df.format(gyroRotation) +"<br>";
 		info += "sensorOpticalFlow: " + sensorOpticalFlow +"<br>";
+		info += "Battery time: " + minutes +":"+seconds+"<br>";
 		info += "</html>";
 		return info;
 	}

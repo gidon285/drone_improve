@@ -196,6 +196,7 @@ public class SimulationWindow {
 		{
 			  public void actionPerformed(ActionEvent e)
 			  {
+				  start_time = System.currentTimeMillis() ; // 1 second = 1000 mils  ,1 min = 60,000 mils
 				  toogleAI = !toogleAI;
 			  }
 		});
@@ -259,7 +260,9 @@ public class SimulationWindow {
 	public JLabel info_label2;
 	public static boolean toogleRealMap = true;
 	public static boolean toogleAI = false;
-	
+	public static long start_time = 0 ;//we added
+
+
 	public static AutoAlgo1 algo1;
 	
 	
@@ -272,7 +275,7 @@ public class SimulationWindow {
 				new Point(84,73),
 				new Point(92,100)};
 		
-		Map map = new Map("C:\\Users\\gidon\\IdeaProjects\\DroneSimulator2\\Maps\\p1" + map_num + ".png",startPoints[0]);
+		Map map = new Map("C:\\Users\\moriy\\Desktop\\ex1\\drone_improve\\Maps\\p1" + map_num + ".png",startPoints[map_num-1]);
 		
 		algo1 = new AutoAlgo1(map);
 		
@@ -297,8 +300,8 @@ public class SimulationWindow {
 	
 	public void updateInfo(int deltaTime) {
 		info_label.setText(algo1.drone.getInfoHTML());
-		info_label2.setText("<html>" + String.valueOf(algo1.counter) + " <BR>isRisky:" + String.valueOf(algo1.is_risky) + 
-				"<BR>" + String.valueOf(algo1.risky_dis) + "</html>");
+		info_label2.setText("<html>" + String.valueOf(algo1.counter) + " <BR>isRisky:" + String.valueOf(algo1.is_risky) +
+				"<BR>" + String.valueOf(algo1.risky_dis) + " <BR>is return home:" +String.valueOf(SimulationWindow.return_home) +"</html>");
 		
 	}
 	
