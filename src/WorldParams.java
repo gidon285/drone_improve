@@ -19,7 +19,7 @@ public class WorldParams {
 	public static int left_safe_distance = 270;
 
 	public static float error_in_lidar=0.02f;//was 0.05f
-	public static long time_of_battery = 2;// 8 mints = 480,000 mils
+	public static long time_of_battery = 8;// 8 mints = 480,000 mils
 	public static long safety_battery_time = (long)((0.1*time_of_battery*60000)); ;// safety time in mils
 	public static double error_range = 0.02; //2% error range
 	public static int size_of_drone = 10 ; //in cm

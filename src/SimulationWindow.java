@@ -275,7 +275,7 @@ public class SimulationWindow {
 				new Point(84,73),
 				new Point(92,100)};
 		
-		Map map = new Map("C:\\Users\\moriy\\Desktop\\ex1\\drone_improve\\Maps\\p1" + map_num + ".png",startPoints[map_num-1]);
+		Map map = new Map("C:\\Users\\gidon\\OneDrive\\Desktop\\drone_improve\\Maps\\p1" + map_num + ".png",startPoints[map_num-1]);
 		
 		algo1 = new AutoAlgo1(map);
 		
