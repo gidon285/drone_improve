@@ -289,7 +289,7 @@ public class SimulationWindow {
 		
 		algo1.play();
 		
-		CPU updatesCPU = new CPU(60,"updates");
+		CPU updatesCPU = new CPU(10,"updates");//was 60
 		updatesCPU.addFunction(algo1.drone::update);
 		updatesCPU.play();
 		

@@ -32,7 +32,7 @@ public class Lidar{
 	public double getSimulationDistance(int deltaTime) {
 		Random ran= new Random();
 		double distanceInCM;
-		if(ran.nextFloat() <= 0.05f) { // 5% of the time, not getting an answer
+		if(ran.nextFloat() <= WorldParams.error_in_lidar) { // 5% of the time, not getting an answer
 			distanceInCM = 0;
 		} else {
 			distanceInCM = getDistance(deltaTime);

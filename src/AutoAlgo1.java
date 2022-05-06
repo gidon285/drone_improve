@@ -1,30 +1,21 @@
-import java.awt.Color;
-import java.awt.Graphics;
+import java.awt.*;
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class AutoAlgo1 {
-    int spin_by =0;
+    int points_to_check_distanse_from=15;
+    int spin_by = 0;
     boolean is_init = true;
     boolean try_to_return = false;
-    long last_sample = 0;
-    double lastFrontLidarDis = 0;
-    boolean isRotateRight = false;
-    double changedRight = 0;
-    double changedLeft = 0;
-    boolean tryToEscape = false;
     int leftOrRight = 1;
     double max_rotation_to_direction = 20;
     boolean is_finish = true;
-    boolean isLeftRightRotationEnable = true;
     boolean is_risky = false;
-    int max_risky_distance = 150;
     boolean try_to_escape = false;
     double risky_dis = 0;
     int max_angle_risky = 10;
     boolean is_lidars_max = false;
-    double save_point_after_seconds = 3;
-    double max_distance_between_points = 35;
-    boolean start_return_home = false;
+    double max_distance_between_points = 50;//was 35
     Point init_point;
     int map_size = 3000;
 
@@ -76,16 +67,17 @@ public class AutoAlgo1 {
     public void update(int deltaTime) {
         updateVisited();
         updateMapByLidars();
-        if (SimulationWindow.start_time > 0 ) {
+        if (SimulationWindow.start_time > 0) {
             long time_passed = System.currentTimeMillis() - SimulationWindow.start_time;
             long time_for_return = (long) (((double) WorldParams.time_of_battery / 2) * 60000 - WorldParams.safety_battery_time);
-//            System.out.println("AAAAAA"+time_passed);
-//            System.out.println("BBBBB"+time_for_return);
-//            System.out.println("CCCCCCCCC"+(WorldParams.time_of_battery / 2) * 60000);
-//            System.out.println("DDDDDDDD"+WorldParams.safety_battery_time);
             if (time_passed >= time_for_return) {
                 SimulationWindow.return_home = true;
             }
+            if(time_passed>= WorldParams.time_of_battery*60000)
+            {
+                speedDown();
+            }
+
         }
         ai(deltaTime);
         if (isRotating != 0) {
@@ -183,6 +175,7 @@ public class AutoAlgo1 {
         paintPoints(g);
         drone.paint(g);
     }
+
     // gidon and moria!!@@@@
     //blackbox !!
     // right 0
@@ -202,20 +195,41 @@ public class AutoAlgo1 {
             is_init = false;
         }
         Point dronePoint = drone.getOpticalSensorLocation();
-        if (SimulationWindow.return_home) {
-            if( !try_to_escape) {
-                if (Tools.getDistanceBetweenPoints(getLastPoint(), dronePoint) < max_distance_between_points / 3) {
+        //        if (SimulationWindow.return_home) {
+//            if (Tools.getDistanceBetweenPoints(getLastPoint(), dronePoint) < max_distance_between_points) {
+//                if (points.size() <= 1 && Tools.getDistanceBetweenPoints(getLastPoint(), dronePoint) < max_distance_between_points / 5) {
+//                    speedDown();
+//                } else {
+//                    removeLastPoint();
+//                }
+//            }
+        if (SimulationWindow.return_home) { //we changed
+            if (!try_to_escape) {
+                ArrayList<Point> close_points = get_x_LastPoint(points_to_check_distanse_from);//get 4 last points
+                Point close_point = null;
+                for (Point p : close_points) {
+                    if (Tools.getDistanceBetweenPoints(p, dronePoint) < max_distance_between_points / 3) {
+                        close_point = p;
+                        break;
+                    }
+                }
+                if (close_point != null)//we are close to some point
+                {
+                    while (getLastPoint() != close_point) {
+                        removeLastPoint();
+                    }
                     removeLastPoint();
                     if (points.isEmpty()) {
-                        //@@@@@ stop!!!!!
+                        // stop
                         speedDown();
                         return;
                     }
                 }
-                if( ! try_to_return) {
-                    System.out.println("try_to_return ");
-                    try_to_return = true;
+
+                if (!try_to_return) {
+//                    System.out.println("try_to_return ");
                     spin_by = (int) (Tools.getRotationBetweenPoints(getLastPoint(), dronePoint));
+                    try_to_return = true;
                     spinBy(spin_by, true, new Func() {
                         @Override
                         public void method() {
@@ -224,26 +238,26 @@ public class AutoAlgo1 {
                     });
                 }
             }
-        }
-        else {
+        } else {
             if (Tools.getDistanceBetweenPoints(getLastPoint(), dronePoint) >= max_distance_between_points) {
                 points.add(dronePoint);
                 mGraph.addVertex(dronePoint);
             }
         }
+
         // update if one direction is dangerous
         if (!is_risky) {
             Lidar lidar = drone.lidars.get(0);
-            if (lidar.current_distance <= max_risky_distance) {
+            if (lidar.current_distance <= WorldParams.safety_distance + WorldParams.extra_range) {//was max_risky_distance
                 is_risky = true;
                 risky_dis = lidar.current_distance;
             }
             Lidar lidar1 = drone.lidars.get(1);
-            if (lidar1.current_distance <= max_risky_distance / 3) {
+            if (lidar1.current_distance <= (WorldParams.safety_distance + WorldParams.extra_range)) {//was  max_risky_distance / 3
                 is_risky = true;
             }
             Lidar lidar2 = drone.lidars.get(2);
-            if (lidar2.current_distance <= max_risky_distance / 3) {
+            if (lidar2.current_distance <= (WorldParams.safety_distance + WorldParams.extra_range)) {//was  max_risky_distance / 3
                 is_risky = true;
             }
         }
@@ -273,9 +287,9 @@ public class AutoAlgo1 {
                         mGraph.addVertex(dronePoint);
                     }
                     spin_by = 90;
-                    if(SimulationWindow.return_home ) {
+                    if (SimulationWindow.return_home) {
                         spin_by *= -1;
-					}
+                    }
                     if (dis_to_lidar1 < dis_to_lidar2) {
                         spin_by *= (-1);
                     }
@@ -298,6 +312,7 @@ public class AutoAlgo1 {
             }
         }
     }
+
 
 //    public void ai(int deltaTime) {
 //        if (!SimulationWindow.toogleAI) {
@@ -392,118 +407,135 @@ public class AutoAlgo1 {
 //        }
 //    }
 
-    int counter = 0;
+        int counter = 0;
 
-    public void doLeftRight() {
-        if (is_finish) {
-            leftOrRight *= -1;
-            counter++;
-            is_finish = false;
-            spinBy(max_rotation_to_direction * leftOrRight, false, new Func() {
-                @Override
-                public void method() {
-                    is_finish = true;
-                }
-            });
-        }
-    }
-
-    double lastGyroRotation = 0;
-
-    public void updateRotating(int deltaTime) {
-        if (degrees_left.size() == 0) {
-            return;
-        }
-        double degrees_left_to_rotate = degrees_left.get(0);
-        boolean isLeft = true;
-        if (degrees_left_to_rotate > 0) {
-            isLeft = false;
-        }
-        double curr = drone.getGyroRotation();
-        double just_rotated = 0;
-        if (isLeft) {
-            just_rotated = curr - lastGyroRotation;
-            if (just_rotated > 0) {
-                just_rotated = -(360 - just_rotated);
-            }
-        } else {
-            just_rotated = curr - lastGyroRotation;
-            if (just_rotated < 0) {
-                just_rotated = 360 + just_rotated;
+        public void doLeftRight () {
+            if (is_finish) {
+                leftOrRight *= -1;
+                counter++;
+                is_finish = false;
+                spinBy(max_rotation_to_direction * leftOrRight, false, new Func() {
+                    @Override
+                    public void method() {
+                        is_finish = true;
+                    }
+                });
             }
         }
-        lastGyroRotation = curr;
-        degrees_left_to_rotate -= just_rotated;
-        degrees_left.remove(0);
-        degrees_left.add(0, degrees_left_to_rotate);
-        if ((isLeft && degrees_left_to_rotate >= 0) || (!isLeft && degrees_left_to_rotate <= 0)) {
-            degrees_left.remove(0);
-            Func func = degrees_left_func.get(0);
-            if (func != null) {
-                func.method();
-            }
-            degrees_left_func.remove(0);
+
+        double lastGyroRotation = 0;
+
+        public void updateRotating ( int deltaTime){
             if (degrees_left.size() == 0) {
-                isRotating = 0;
+                return;
             }
-            return;
+            double degrees_left_to_rotate = degrees_left.get(0);
+            boolean isLeft = true;
+            if (degrees_left_to_rotate > 0) {
+                isLeft = false;
+            }
+            double curr = drone.getGyroRotation();
+            double just_rotated = 0;
+            if (isLeft) {
+                just_rotated = curr - lastGyroRotation;
+                if (just_rotated > 0) {
+                    just_rotated = -(360 - just_rotated);
+                }
+            } else {
+                just_rotated = curr - lastGyroRotation;
+                if (just_rotated < 0) {
+                    just_rotated = 360 + just_rotated;
+                }
+            }
+            lastGyroRotation = curr;
+            degrees_left_to_rotate -= just_rotated;
+            degrees_left.remove(0);
+            degrees_left.add(0, degrees_left_to_rotate);
+            if ((isLeft && degrees_left_to_rotate >= 0) || (!isLeft && degrees_left_to_rotate <= 0)) {
+                degrees_left.remove(0);
+                Func func = degrees_left_func.get(0);
+                if (func != null) {
+                    func.method();
+                }
+                degrees_left_func.remove(0);
+                if (degrees_left.size() == 0) {
+                    isRotating = 0;
+                }
+                return;
+            }
+            int direction = (int) (degrees_left_to_rotate / Math.abs(degrees_left_to_rotate));
+            drone.rotateLeft(deltaTime * direction);
         }
-        int direction = (int) (degrees_left_to_rotate / Math.abs(degrees_left_to_rotate));
-        drone.rotateLeft(deltaTime * direction);
-    }
 
-    public void spinBy(double degrees, boolean isFirst, Func func) {
-        lastGyroRotation = drone.getGyroRotation();
-        if (isFirst) {
-            degrees_left.add(0, degrees);
-            degrees_left_func.add(0, func);
-        } else {
-            degrees_left.add(degrees);
-            degrees_left_func.add(func);
+        public void spinBy ( double degrees, boolean isFirst, Func func){
+            lastGyroRotation = drone.getGyroRotation();
+            if (isFirst) {
+                degrees_left.add(0, degrees);
+                degrees_left_func.add(0, func);
+            } else {
+                degrees_left.add(degrees);
+                degrees_left_func.add(func);
+            }
+            isRotating = 1;
         }
-        isRotating = 1;
-    }
 
-    public void spinBy(double degrees, boolean isFirst) {
-        lastGyroRotation = drone.getGyroRotation();
-        if (isFirst) {
-            degrees_left.add(0, degrees);
-            degrees_left_func.add(0, null);
-        } else {
+        public void spinBy ( double degrees, boolean isFirst){
+            lastGyroRotation = drone.getGyroRotation();
+            if (isFirst) {
+                degrees_left.add(0, degrees);
+                degrees_left_func.add(0, null);
+            } else {
+                degrees_left.add(degrees);
+                degrees_left_func.add(null);
+            }
+            isRotating = 1;
+        }
+
+        public void spinBy ( double degrees){
+            lastGyroRotation = drone.getGyroRotation();
             degrees_left.add(degrees);
             degrees_left_func.add(null);
+            isRotating = 1;
         }
-        isRotating = 1;
-    }
 
-    public void spinBy(double degrees) {
-        lastGyroRotation = drone.getGyroRotation();
-        degrees_left.add(degrees);
-        degrees_left_func.add(null);
-        isRotating = 1;
-    }
-
-    public Point getLastPoint() {
-        if (points.size() == 0) {
-            return init_point;
+        public Point getLastPoint () {
+            if (points.size() == 0) {
+                return init_point;
+            }
+            Point p1 = points.get(points.size() - 1);
+            return p1;
         }
-        Point p1 = points.get(points.size() - 1);
-        return p1;
-    }
 
-    public Point removeLastPoint() {
-        if (points.isEmpty()) {
-            return init_point;
+        public ArrayList<Point> get_x_LastPoint ( int x){
+            ArrayList<Point> point_list = new ArrayList<Point>();
+            if (points.size() == 0) {
+                point_list.add(init_point);
+                return point_list;
+            }
+            if (points.size() < x) {
+                point_list.addAll(points);
+                Collections.reverse(point_list);
+                return point_list;
+            }
+            for (int i = 1; i <= x; i++) {
+                point_list.add(points.get(points.size() - i));
+            }
+            return point_list;
         }
-        return points.remove(points.size() - 1);
-    }
 
-    public Point getAvgLastPoint() {
-        if (points.size() < 2) {
-            return init_point;
+        public Point removeLastPoint () {
+            if (points.isEmpty()) {
+                return init_point;
+            }
+            return points.remove(points.size() - 1);
         }
-        Point p1 = points.get(points.size() - 1);
-        Point p2 = points.get(points.size() - 2);
-        return new Point((p1.x + p2.x) / 2, (p1.y + p2.y) / 2);
+
+        public Point getAvgLastPoint () {
+            if (points.size() < 2) {
+                return init_point;
+            }
+            Point p1 = points.get(points.size() - 1);
+            Point p2 = points.get(points.size() - 2);
+            return new Point((p1.x + p2.x) / 2, (p1.y + p2.y) / 2);
+        }
     }
-}
