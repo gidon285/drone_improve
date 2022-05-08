@@ -11,9 +11,11 @@ This project written in Java.
 in the processe of this course we improved the "return home" algorithm, the algorithm that controls the drone after his battery is depleted by more than 50%. that is done so that the drone will have enought time to go back to the his starting point.
 
 the method we changed:
+
     -AutoAlgo1  we changed the next methods:
       in update() => we added the return home, meaning the function will work automaticlly.
       in ai() => we added our algorithm (aiming the dorne in each frame update to set course to the nearest previous point) for returning home, inculding the part where if the drone has made a loop, he will not revisit points that are not necessary.
+      
       
   -SimulationWindow - we added:
       we added a variable to keep the starting flight of the drone.
