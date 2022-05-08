@@ -6,7 +6,7 @@ Basic API with real-time info and also manual controlling.
 We also implemented kind of area mapping when the drone fly.
 This project written in Java.
 
-## Our changes!
+## Our changes!(Moria, Gidon, Elad)
 
 in the processe of this course we improved the "return home" algorithm, the algorithm that controls the drone after his battery is depleted by more than 50%. that is done so that the drone will have enought time to go back to the his starting point.
 
