@@ -12,17 +12,15 @@ in the processe of this course we improved the "return home" algorithm, the algo
 
 the method we changed:
 
--AutoAlgo1  we changed the next methods:
+1.AutoAlgo1  we changed the next methods:
 
--in update() => we added the return home, meaning the function will work automaticlly.
+    a.in update() - we added the return home, meaning the function will work automaticlly.
+    b.in ai() - we added our algorithm (aiming the dorne in each frame update to set course to the nearest previous point) for returning home, inculding the part where if the drone has made a loop, he will not revisit points that are not necessary.
     
--in ai() => we added our algorithm (aiming the dorne in each frame update to set course to the nearest previous point) for returning home, inculding the part where if the drone has made a loop, he will not revisit points that are not necessary.
-    
--SimulationWindow - we added:
+2.SimulationWindow - we added:
 
-    -we added a variable to keep the starting flight of the drone.
-    
-    -we added to the screen : the battery status in secounds , boolean for "return home".    
+    a.we added a variable to keep the starting flight of the drone.
+    b.we added to the screen : the battery status in secounds , boolean for "return home".    
      
 ## Getting Started
 
